@@ -6,13 +6,10 @@ Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.5
 Flask-CORS==4.0.0
 
-
-
 # ===============================
 # BASE DE DATOS
 # ===============================
 psycopg[binary]==3.2.9
-
 
 # ===============================
 # CACHE (REDIS)
@@ -45,6 +42,12 @@ requests==2.31.0
 # PRUEBAS DE PERFORMANCE
 # ===============================
 locust==2.17.0
+
+# ===============================
+# PRUEBAS UI CON SELENIUM
+# ===============================
+selenium==4.15.2
+webdriver-manager==4.0.1
 
 # ===============================
 # SEGURIDAD - ANÁLISIS ESTÁTICO

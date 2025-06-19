@@ -168,3 +168,5 @@ instance/config.py
 # Temporary files
 *.tmp
 *.temp
+
+bin
