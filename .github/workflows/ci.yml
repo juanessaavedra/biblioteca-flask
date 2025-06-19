@@ -37,12 +37,11 @@ jobs:
     - name: Limpiar
       run: docker-compose down
 
-      # Job para el mensaje de despliegue
-
-      deploy:
+  # Nuevo job para el mensaje de despliegue
+  deploy:
     runs-on: ubuntu-latest
-    needs: test
-
+    needs: test # Este job solo se ejecutará si el job 'test' se completó con éxito
+    
     steps:
-    - name: Mensaje de despliegue
-      run: echo "Despliegue exitoso. La aplicación está lista para producción."
+    - name: Mensaje de Listo para Desplegar
+      run: echo "🎉 Listo para desplegar 🎉"
