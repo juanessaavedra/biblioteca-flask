@@ -25,10 +25,6 @@ jobs:
     - name: Construir y levantar servicios
       run: docker-compose up --build -d
     
-    - name: Esperar que la app esté lista
-      run: |
-        timeout 60 bash -c 'until curl -f http://localhost:5000/health; do sleep 2; done'
-    
     - name: Ejecutar pruebas unitarias
       run: docker-compose exec -T app pytest tests/unit/ -v
     
