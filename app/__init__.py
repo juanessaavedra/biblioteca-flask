@@ -14,7 +14,7 @@ def create_app(config_class=Config):
     
     CORS(app, resources={r"/*": {"origins": "*"}})
     Migrate(app, db)
-    JWTManager(app)
+
     
     from app.routes import main_bp
     app.register_blueprint(main_bp)
