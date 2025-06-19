@@ -1,8 +1,6 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
-  # Base de datos PostgreSQL
   db:
     image: postgres:15-alpine
     environment:
@@ -11,20 +9,44 @@ services:
       POSTGRES_DB: biblioteca
     ports:
       - "5433:5432"
+    # ✅ AGREGAR: Límites de memoria para PostgreSQL
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    # ✅ AGREGAR: Configuración optimizada de PostgreSQL
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c effective_cache_size=256MB
+      -c maintenance_work_mem=32MB
+      -c work_mem=4MB
+      -c max_connections=50
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d biblioteca"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Aplicación Flask
   app:
     build: .
     environment:
       - DATABASE_URL=postgresql+psycopg://postgres:admin@db:5432/biblioteca
       - SECRET_KEY=docker-secret-key
+      # ✅ AGREGAR: Variables para optimizar memoria
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     ports:
       - "5001:5000"
+    # ✅ AGREGAR: Límites de memoria para la app
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
     depends_on:
       db:
         condition: service_healthy
