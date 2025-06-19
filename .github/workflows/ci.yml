@@ -1,3 +1,4 @@
+# .github/workflows/ci.yml
 name: CI Pipeline
 
 on:
@@ -21,10 +22,40 @@ jobs:
     
     - name: Construir y levantar servicios
       run: docker-compose up --build -d
+
+    # --- NUEVAS PASOS DE DIAGNÓSTICO ---
+    - name: Esperar a que los servicios estén listos (importante para la base de datos)
+      run: |
+        echo "Esperando a que el servicio 'db' esté completamente listo..."
+        # Este bucle espera hasta que el puerto 5432 (PostgreSQL) esté abierto en el contenedor 'db'
+        # Es crucial para asegurar que la base de datos esté lista para aceptar conexiones
+        timeout 60 bash -c 'until pg_isready -h db -p 5432 -U youruser; do echo "DB not ready yet..."; sleep 2; done;'
+        echo "Servicio 'db' listo."
+        
+        echo "Esperando a que el servicio 'app' esté listo (si corresponde)..."
+        # Opcional: Esperar a que tu aplicación responda a un health check si tiene uno
+        # Por ejemplo, si tienes un endpoint /health que indica que la app está lista
+        # timeout 60 bash -c 'until curl --output /dev/null --silent --head --fail http://localhost:5000/health; do echo "App not ready yet..."; sleep 2; done;'
+        # echo "Servicio 'app' listo."
+      env:
+        PGPASSWORD: yourpassword # Necesitas la contraseña para pg_isready si el usuario la requiere
+
+    - name: Verificar el estado de los contenedores
+      run: docker-compose ps
+
+    - name: Mostrar logs del servicio 'app' si hay un fallo
+      # Esto solo se ejecutará si el paso anterior (o 'Construir y levantar') falla.
+      # Usamos 'always()' para asegurarnos de obtener los logs incluso si el paso falla.
+      if: failure()
+      run: |
+        echo "--- Logs del servicio 'app' ---"
+        docker-compose logs app
+        echo "--- Fin de logs del servicio 'app' ---"
+    # --- FIN DE NUEVAS PASOS DE DIAGNÓSTICO ---
     
     - name: Ejecutar pruebas unitarias
       run: docker-compose exec -T app pytest tests/unit/ -v
-    
+
     - name: Ejecutar pruebas de integración
       run: docker-compose exec -T app pytest tests/integration/ -v
 
