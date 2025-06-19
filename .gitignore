@@ -79,7 +79,6 @@ target/
 
 # IPython
 profile_default/
-ipython_config.py
 
 # pyenv
 .python-version
@@ -156,10 +155,6 @@ logs/
 # Docker
 .dockerignore
 
-# Configuration files with sensitive data
-config.py
-instance/config.py
-*.cfg
 
 # Backup files
 *.bak
