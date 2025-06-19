@@ -5,32 +5,14 @@ services:
   # Base de datos PostgreSQL
   db:
     image: postgres:15-alpine
-    container_name: biblioteca_db
     environment:
-      POSTGRES_USER: biblioteca_user
-      POSTGRES_PASSWORD: biblioteca_pass
-      POSTGRES_DB: biblioteca_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: biblioteca
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U biblioteca_user -d biblioteca_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis para cache
-  redis:
-    image: redis:7-alpine
-    container_name: biblioteca_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d biblioteca"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,40 +20,14 @@ services:
   # Aplicación Flask
   app:
     build: .
-    container_name: biblioteca_app
     environment:
-      - DATABASE_URL=postgresql+psycopg://biblioteca_user:biblioteca_pass@db:5432/biblioteca_db
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=docker-secret-key-change-in-production
-      - JWT_SECRET_KEY=docker-jwt-secret-change-in-production
-      - DEBUG=False
+      - DATABASE_URL=postgresql+psycopg://postgres:admin@db:5432/biblioteca
+      - SECRET_KEY=docker-secret-key
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - .:/app
-    restart: unless-stopped
-
-  # Nginx como reverse proxy (opcional)
-  nginx:
-    image: nginx:alpine
-    container_name: biblioteca_nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - app
-    restart: unless-stopped
 
 volumes:
   postgres_data:
-  redis_data:
-
-networks:
-  default:
-    name: biblioteca_network
