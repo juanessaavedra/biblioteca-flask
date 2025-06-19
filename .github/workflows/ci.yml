@@ -15,6 +15,13 @@ jobs:
     - name: Checkout código
       uses: actions/checkout@v4
     
+    - name: Instalar Docker Compose (si no está presente)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+      # Este paso asegura que docker-compose esté disponible en el entorno del runner.
+      # Aunque suele venir preinstalado en ubuntu-latest, esta es una medida robusta.
+    
     - name: Construir y levantar servicios
       run: docker-compose up --build -d
     
