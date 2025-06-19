@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Digital</title>
+    <style>
+        /* ===== ESTILOS CSS PARA LA INTERFAZ ===== */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        /* Cada sección es una caja blanca con sombra */
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        /* Los formularios tienen campos organizados verticalmente */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+        input, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        /* Botones azules que cambian al pasar el mouse */
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        /* Botón verde para actualizar listas */
+        .refresh-btn {
+            background-color: #28a745;
+            margin-bottom: 10px;
+            max-width: 150px;
+        }
+        /* Estilo para mostrar cada elemento (usuario, libro, préstamo) */
+        .item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007bff; /* Línea azul a la izquierda */
+        }
+        /* Mensajes de éxito (verde) */
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        /* Mensajes de error (rojo) */
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        /* Préstamos tienen fondo amarillo */
+        .prestamo-item {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        /* Usuarios tienen fondo celeste */
+        .usuario-item {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Biblioteca Digital - Sistema Simple</h1>
+
+    <!-- ===== SECCIÓN 1: CREAR USUARIO ===== -->
+    <!-- Aquí el usuario puede registrar nuevos usuarios en el sistema -->
+    <div class="section">
+        <h2>👤 Crear Usuario</h2>
+        <!-- Formulario con ID único para identificarlo en JavaScript -->
+        <form id="formUsuario">
+            <input type="text" id="nombreUsuario" placeholder="Nombre del usuario" required>
+            <input type="email" id="emailUsuario" placeholder="Email del usuario" required>
+            <button type="submit">Crear Usuario</button>
+        </form>
+        <!-- Div donde aparecerán mensajes de éxito o error -->
+        <div id="mensajeUsuario"></div>
+    </div>
+
+    <!-- ===== SECCIÓN 2: MOSTRAR USUARIOS REGISTRADOS ===== -->
+    <!-- Lista todos los usuarios con sus IDs para que puedas copiarlos -->
+    <div class="section">
+        <h2>👥 Usuarios Registrados</h2>
+        <!-- Botón para refrescar la lista manualmente -->
+        <button class="refresh-btn" onclick="cargarUsuarios()">🔄 Actualizar</button>
+        <!-- Contenedor donde se mostrarán los usuarios -->
+        <div id="usuariosLista"></div>
+    </div>
+
+    <!-- ===== SECCIÓN 3: AGREGAR LIBRO ===== -->
+    <div class="section">
+        <h2>📖 Agregar Libro</h2>
+        <form id="formLibro">
+            <input type="text" id="titulo" placeholder="Título del libro" required>
+            <input type="text" id="autor" placeholder="Autor" required>
+            <input type="text" id="isbn" placeholder="ISBN" required>
+            <button type="submit">Agregar Libro</button>
+        </form>
+        <div id="mensajeLibro"></div>
+    </div>
+
+    <!-- ===== SECCIÓN 4: MOSTRAR LIBROS DISPONIBLES ===== -->
+    <!-- Solo muestra libros que NO están prestados -->
+    <div class="section">
+        <h2>📚 Libros Disponibles</h2>
+        <button class="refresh-btn" onclick="cargarLibrosDisponibles()">🔄 Actualizar</button>
+        <div id="librosDisponibles"></div>
+    </div>
+
+    <!-- ===== SECCIÓN 5: CREAR PRÉSTAMO ===== -->
+    <div class="section">
+        <h2>📝 Crear Préstamo</h2>
+        <p><strong>Instrucciones:</strong> Copia el ID del usuario y el ID del libro de las listas de arriba</p>
+        <form id="formPrestamo">
+            <!-- Campos numéricos para los IDs -->
+            <input type="number" id="usuarioId" placeholder="ID del Usuario (ver lista arriba)" required>
+            <input type="number" id="libroId" placeholder="ID del Libro (ver lista arriba)" required>
+            <button type="submit">Crear Préstamo</button>
+        </form>
+        <div id="mensajePrestamo"></div>
+    </div>
+
+    <!-- ===== SECCIÓN 6: MOSTRAR PRÉSTAMOS ACTIVOS ===== -->
+    <div class="section">
+        <h2>📋 Préstamos Activos</h2>
+        <button class="refresh-btn" onclick="cargarPrestamos()">🔄 Actualizar</button>
+        <div id="prestamosActivos"></div>
+    </div>
+
+    <!-- ===== SECCIÓN 7: DEVOLVER LIBRO ===== -->
+    <div class="section">
+        <h2>↩️ Devolver Libro</h2>
+        <p><strong>Instrucciones:</strong> Copia el ID del préstamo de la lista de arriba</p>
+        <form id="formDevolucion">
+            <input type="number" id="prestamoId" placeholder="ID del Préstamo (ver lista arriba)" required>
+            <button type="submit">Devolver Libro</button>
+        </form>
+        <div id="mensajeDevolucion"></div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN PRINCIPAL =====
+        // URL base de nuestra API Flask (debe estar corriendo en puerto 5000)
+        const API_BASE = 'http://127.0.0.1:5000';
+
+        // ===== FUNCIÓN AUXILIAR PARA MOSTRAR MENSAJES =====
+        // Esta función muestra mensajes de éxito (verde) o error (rojo)
+        function mostrarMensaje(elementId, mensaje, tipo = 'success') {
+            const elemento = document.getElementById(elementId);
+            elemento.innerHTML = `<div class="${tipo}">${mensaje}</div>`;
+            // El mensaje se borra automáticamente después de 4 segundos
+            setTimeout(() => elemento.innerHTML = '', 4000);
+        }
+
+        // ===== CREAR USUARIO =====
+        // Escucha cuando se envía el formulario de usuario
+        document.getElementById('formUsuario').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita que la página se recargue
+            
+            // Recoge los datos del formulario
+            const data = {
+                nombre: document.getElementById('nombreUsuario').value,
+                email: document.getElementById('emailUsuario').value
+            };
+
+            try {
+                // Hace petición POST a la API para crear usuario
+                const response = await fetch(`${API_BASE}/usuarios`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}, // Le dice a la API que enviamos JSON
+                    body: JSON.stringify(data) // Convierte el objeto a JSON
+                });
+
+                if (response.ok) {
+                    // Si todo salió bien, muestra mensaje de éxito
+                    mostrarMensaje('mensajeUsuario', '✅ Usuario creado exitosamente');
+                    document.getElementById('formUsuario').reset(); // Limpia el formulario
+                    cargarUsuarios(); // Actualiza la lista de usuarios
+                } else {
+                    // Si hubo error, lo muestra
+                    const error = await response.json();
+                    mostrarMensaje('mensajeUsuario', `❌ Error: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                // Si no se pudo conectar con la API
+                mostrarMensaje('mensajeUsuario', `❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // ===== AGREGAR LIBRO =====
+        // Funciona igual que crear usuario, pero para libros
+        document.getElementById('formLibro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                titulo: document.getElementById('titulo').value,
+                autor: document.getElementById('autor').value,
+                isbn: document.getElementById('isbn').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/libros`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    mostrarMensaje('mensajeLibro', '✅ Libro agregado exitosamente');
+                    document.getElementById('formLibro').reset();
+                    cargarLibrosDisponibles(); // Actualiza la lista de libros
+                } else {
+                    const error = await response.json();
+                    mostrarMensaje('mensajeLibro', `❌ Error: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('mensajeLibro', `❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // ===== CREAR PRÉSTAMO =====
+        document.getElementById('formPrestamo').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Recoge los IDs y los convierte a números enteros
+            const data = {
+                usuario_id: parseInt(document.getElementById('usuarioId').value),
+                libro_id: parseInt(document.getElementById('libroId').value)
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/prestamos`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    mostrarMensaje('mensajePrestamo', '✅ Préstamo creado exitosamente');
+                    document.getElementById('formPrestamo').reset();
+                    // Actualiza ambas listas porque el libro ya no estará disponible
+                    cargarLibrosDisponibles();
+                    cargarPrestamos();
+                } else {
+                    const error = await response.json();
+                    mostrarMensaje('mensajePrestamo', `❌ Error: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('mensajePrestamo', `❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // ===== DEVOLVER LIBRO =====
+        document.getElementById('formDevolucion').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const prestamoId = document.getElementById('prestamoId').value;
+
+            try {
+                // Usa método PUT para actualizar el préstamo
+                const response = await fetch(`${API_BASE}/prestamos/${prestamoId}/devolver`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'}
+                });
+
+                if (response.ok) {
+                    mostrarMensaje('mensajeDevolucion', '✅ Libro devuelto exitosamente');
+                    document.getElementById('formDevolucion').reset();
+                    // Actualiza las listas porque el libro vuelve a estar disponible
+                    cargarLibrosDisponibles();
+                    cargarPrestamos();
+                } else {
+                    const error = await response.json();
+                    mostrarMensaje('mensajeDevolucion', `❌ Error: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                mostrarMensaje('mensajeDevolucion', `❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // ===== CARGAR LISTA DE USUARIOS =====
+        // Función que se ejecuta cuando se presiona "Actualizar" o al cargar la página
+        async function cargarUsuarios() {
+            const container = document.getElementById('usuariosLista');
+            
+            try {
+                // Hace petición GET para obtener todos los usuarios
+                const response = await fetch(`${API_BASE}/usuarios`);
+                const usuarios = await response.json(); // Convierte la respuesta a array de objetos
+                
+                if (usuarios.length === 0) {
+                    container.innerHTML = '<p>No hay usuarios registrados</p>';
+                } else {
+                    // Crea HTML para cada usuario, destacando el ID en negrita
+                    container.innerHTML = usuarios.map(usuario => `
+                        <div class="item usuario-item">
+                            <strong>ID: ${usuario.id}</strong> - ${usuario.nombre}<br>
+                            <small>Email: ${usuario.email}</small>
+                        </div>
+                    `).join(''); // join('') convierte el array en un solo string
+                }
+            } catch (error) {
+                container.innerHTML = `<p class="error">Error al cargar usuarios: ${error.message}</p>`;
+            }
+        }
+
+        // ===== CARGAR LIBROS DISPONIBLES =====
+        // Solo muestra libros que tienen disponible = true
+        async function cargarLibrosDisponibles() {
+            const container = document.getElementById('librosDisponibles');
+            
+            try {
+                // Llama al endpoint específico de libros disponibles
+                const response = await fetch(`${API_BASE}/libros/disponibles`);
+                const libros = await response.json();
+                
+                if (libros.length === 0) {
+                    container.innerHTML = '<p>No hay libros disponibles</p>';
+                } else {
+                    // Muestra cada libro con su ID destacado
+                    container.innerHTML = libros.map(libro => `
+                        <div class="item">
+                            <strong>ID: ${libro.id}</strong> - ${libro.titulo}<br>
+                            <small>Autor: ${libro.autor} | ISBN: ${libro.isbn}</small>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                container.innerHTML = `<p class="error">Error al cargar libros: ${error.message}</p>`;
+            }
+        }
+
+        // ===== CARGAR PRÉSTAMOS ACTIVOS =====
+        async function cargarPrestamos() {
+            const container = document.getElementById('prestamosActivos');
+            
+            try {
+                // Obtiene TODOS los préstamos
+                const response = await fetch(`${API_BASE}/prestamos`);
+                const prestamos = await response.json();
+                
+                // Filtra solo los que están activos (no devueltos)
+                const prestamosActivos = prestamos.filter(p => p.activo);
+                
+                if (prestamosActivos.length === 0) {
+                    container.innerHTML = '<p>No hay préstamos activos</p>';
+                } else {
+                    // Muestra información completa: ID del préstamo, usuario y libro
+                    container.innerHTML = prestamosActivos.map(prestamo => `
+                        <div class="item prestamo-item">
+                            <strong>Préstamo ID: ${prestamo.id}</strong><br>
+                            Usuario: ${prestamo.usuario_nombre} (ID: ${prestamo.usuario_id})<br>
+                            Libro: ${prestamo.libro_titulo}<br>
+                            <small>Fecha: ${new Date(prestamo.fecha_prestamo).toLocaleDateString()}</small>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                container.innerHTML = `<p class="error">Error al cargar préstamos: ${error.message}</p>`;
+            }
+        }
+
+        // ===== INICIALIZACIÓN =====
+        // Cuando la página termina de cargar, ejecuta estas funciones
+        // para mostrar los datos iniciales
+        window.addEventListener('load', () => {
+            cargarUsuarios();           // Carga lista de usuarios
+            cargarLibrosDisponibles();  // Carga lista de libros
+            cargarPrestamos();          // Carga lista de préstamos
+        });
+    </script>
+</body>
+</html>
