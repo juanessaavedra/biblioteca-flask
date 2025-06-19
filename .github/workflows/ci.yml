@@ -1,4 +1,3 @@
-# .github/workflows/ci.yml
 name: CI Pipeline
 
 on:
@@ -19,8 +18,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y docker-compose
-      # Este paso asegura que docker-compose esté disponible en el entorno del runner.
-      # Aunque suele venir preinstalado en ubuntu-latest, esta es una medida robusta.
     
     - name: Construir y levantar servicios
       run: docker-compose up --build -d
@@ -30,7 +27,19 @@ jobs:
     
     - name: Ejecutar pruebas de integración
       run: docker-compose exec -T app pytest tests/integration/ -v
-    
+
+    - name: Ejecutar pruebas de UI
+      run: docker-compose exec -T app pytest tests/ui/ -v
+
+    - name: Ejecutar pruebas de seguridad
+      run: docker-compose exec -T app pytest tests/security/ -v
+
+    - name: Ejecutar pruebas de rendimiento
+      run: docker-compose exec -T app pytest tests/rendimiento/ -v
+
+    - name: Ejecutar pruebas de carga y estrés
+      run: docker-compose exec -T app locust -f tests/carga-estres/locustfile.py --headless -u 10 -r 2 -t 1m
+
     - name: Verificar endpoints principales
       run: |
         curl -f http://localhost:5000/health
@@ -40,10 +49,9 @@ jobs:
     - name: Limpiar
       run: docker-compose down
 
-  # Nuevo job para el mensaje de despliegue
   deploy:
     runs-on: ubuntu-latest
-    needs: test # Este job solo se ejecutará si el job 'test' se completó con éxito
+    needs: test
     
     steps:
     - name: Mensaje de Listo para Desplegar
